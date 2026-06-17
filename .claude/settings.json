@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx @nestjs/cli@latest new api --package-manager npm --skip-git --strict)",
+      "Bash(npx create-next-app@latest web --typescript --tailwind --app --no-src-dir --no-import-alias --skip-install)",
+      "Bash(npx shadcn@latest init --defaults --yes)",
+      "Bash(npx shadcn@latest add card input label badge separator select dialog sheet toast --yes)",
+      "Bash(npx shadcn@latest add card input label badge separator select dialog sheet sonner --yes)",
+      "Bash(npx shadcn@latest add slider checkbox dropdown-menu avatar --yes)",
+      "Bash(cd \"c:\\\\Users\\\\user\\\\Desktop\\\\desk\\\\projects\\\\startup\\\\apps\\\\web\" && mkdir -p app/\"\\(auth\\)\"/login app/\"\\(auth\\)\"/register/brand app/\"\\(auth\\)\"/register/influencer app/\"\\(auth\\)\"/callback && mkdir -p app/\"\\(dashboard\\)\"/search app/\"\\(dashboard\\)\"/profile app/\"\\(dashboard\\)\"/deals/new app/\"\\(dashboard\\)\"/deals/\"[id]\" app/\"\\(dashboard\\)\"/influencers/\"[id]\" app/\"\\(dashboard\\)\"/brands/\"[id]\" && mkdir -p components/shared/InfluencerCard components/shared/ScoreBadge components/shared/FilterSidebar components/shared/DealStatusBadge components/layout/Sidebar components/layout/Topbar && mkdir -p lib/api lib/hooks lib/utils && mkdir -p types && echo \"Dirs created\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\user\\\\Desktop\\\\desk\\\\projects\\\\startup\\\\apps\\\\web\\\\app\\\\api\\\\auth\\\\[...nextauth]\")",
+      "Bash(npm ls *)",
+      "Bash(npm run *)",
+      "Bash(timeout 10 node dist/main.js)",
+      "Bash(node dist/main.js)",
+      "Bash(curl -s http://localhost:3001/api/docs-json)",
+      "Bash(curl -s http://localhost:3001)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/auth/login -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"wrong\"}')",
+      "Bash(pg_isready)",
+      "Bash(pg_config --version)",
+      "PowerShell(Start-Service -Name \"postgresql-x64-17\")",
+      "PowerShell(Get-Service -Name \"postgresql-x64-17\")",
+      "Bash(psql -U postgres -c \"CREATE DATABASE influencer_marketplace;\")",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\" http://localhost:3001/auth/register -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"password123\",\"role\":\"BRAND\"}')",
+      "Bash(psql -U postgres -c \"\\\\l\")",
+      "Bash(PGPASSWORD=\"\" psql -U postgres -h localhost -c \"\\\\conninfo\")",
+      "Bash(PGPASSWORD=\"postgres\" psql -U postgres -h localhost -c \"\\\\conninfo\")",
+      "Bash(PGPASSWORD=\"admin\" psql -U postgres -h localhost -c \"\\\\conninfo\")",
+      "Bash(PGPASSWORD=\"password\" psql -U postgres -h localhost -c \"\\\\conninfo\")",
+      "Bash(PGPASSWORD=\"postgres\" psql -U postgres -h 127.0.0.1 -p 5432 -c \"SELECT version\\(\\);\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(PGPASSWORD=\"psqlpassword\" psql -U postgres -h 127.0.0.1 -p 5432 -c \"SELECT version\\(\\);\")",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(psql -h localhost --no-password -c \"\\\\du\")",
+      "Bash(psql -c \"\\\\du\")",
+      "Bash(psql -U user -h 127.0.0.1 -p 5432 --no-password -c \"\\\\du\")",
+      "Bash(PGPASSWORD=\"\" psql -U user -h 127.0.0.1 -p 5432 -c \"\\\\du\")",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\" http://localhost:3001/auth/register -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"test@example.com\",\"password\":\"password123\",\"role\":\"BRAND\"}')"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\user\\Desktop\\desk\\projects\\startup\\apps\\web\\app\\(dashboard)\\deals",
+      "c:\\Users\\user\\Desktop\\desk\\projects\\startup\\apps\\web\\app\\api\\auth"
+    ]
+  }
+}
