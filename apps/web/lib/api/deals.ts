@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Deal } from '../../types/api';
+import { Deal, DealFormat } from '../../types/api';
 
 export const dealsApi = {
   list: (token: string) => apiClient.get<Deal[]>('/deals', token),
@@ -10,7 +10,7 @@ export const dealsApi = {
     data: {
       influencerId: string;
       budget: number;
-      format: string;
+      format: DealFormat;
       description: string;
       deadline: string;
     },
