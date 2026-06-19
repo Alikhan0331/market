@@ -43,10 +43,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
-        token.isVerified = (user as any).isVerified;
-        token.accessToken = (user as any).accessToken;
-        token.refreshToken = (user as any).refreshToken;
+        token.role = user.role;
+        token.isVerified = user.isVerified;
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
       }
       if (account?.provider === 'google') {
         // Google OAuth: tokens are issued by the backend callback redirect
@@ -55,11 +55,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.id as string;
-      (session.user as any).role = token.role;
-      (session.user as any).isVerified = token.isVerified;
-      (session.user as any).accessToken = token.accessToken;
-      (session.user as any).refreshToken = token.refreshToken;
+      session.user.id = token.id;
+      session.user.role = token.role;
+      session.user.isVerified = token.isVerified;
+      session.user.accessToken = token.accessToken;
+      session.user.refreshToken = token.refreshToken;
       return session;
     },
   },
