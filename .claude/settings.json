@@ -36,7 +36,12 @@
       "Bash(psql -c \"\\\\du\")",
       "Bash(psql -U user -h 127.0.0.1 -p 5432 --no-password -c \"\\\\du\")",
       "Bash(PGPASSWORD=\"\" psql -U user -h 127.0.0.1 -p 5432 -c \"\\\\du\")",
-      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\" http://localhost:3001/auth/register -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"test@example.com\",\"password\":\"password123\",\"role\":\"BRAND\"}')"
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\" http://localhost:3001/auth/register -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"test@example.com\",\"password\":\"password123\",\"role\":\"BRAND\"}')",
+      "Bash(\"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -d influencer_marketplace -c \"SELECT id, email, role, \\\\\"isVerified\\\\\", \\\\\"createdAt\\\\\" FROM users ORDER BY \\\\\"createdAt\\\\\" DESC LIMIT 10;\")",
+      "PowerShell($env:PGPASSWORD = \"postgres\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d influencer_marketplace -c \"SELECT id, email, role, `\"isVerified`\", `\"createdAt`\" FROM users ORDER BY `\"createdAt`\" DESC LIMIT 10;\")",
+      "PowerShell($env:PGPASSWORD = \"postgres\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d influencer_marketplace -c 'SELECT id, email, role, \"isVerified\", \"createdAt\" FROM users ORDER BY \"createdAt\" DESC LIMIT 10;')",
+      "PowerShell($env:PGPASSWORD = \"postgres\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d influencer_marketplace -c \"SELECT id, email, role FROM users ORDER BY \"\"createdAt\"\" DESC LIMIT 10;\")",
+      "PowerShell(netstat -ano)"
     ],
     "additionalDirectories": [
       "C:\\Users\\user\\Desktop\\desk\\projects\\startup\\apps\\web\\app\\(dashboard)\\deals",
