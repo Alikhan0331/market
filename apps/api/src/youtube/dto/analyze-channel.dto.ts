@@ -1,7 +1,12 @@
+import { IsString, IsOptional, IsInt, Min, Max } from 'class-validator';
+
 export class AnalyzeChannelDto {
-  // можно передать @handle, channelId (UCxxx...), или полный URL
+  @IsString()
   input: string;
 
-  // сколько последних видео анализировать (по умолчанию 20)
+  @IsOptional()
+  @IsInt()
+  @Min(5)
+  @Max(50)
   videoCount?: number;
 }
