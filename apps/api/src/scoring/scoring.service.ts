@@ -81,7 +81,8 @@ export class ScoringService {
     if (profile.instagramFollowers > 0) {
       const b = BENCHMARKS.instagram;
       scores.push(Math.min(profile.instagramFollowers / b.reachDivisor, 1) * 10);
-      erScores.push(Math.min(profile.instagramER / b.avgER, 1) * 10);
+      // Fix: TypeORM returns decimal columns as strings from PostgreSQL — cast to Number
+      erScores.push(Math.min(Number(profile.instagramER) / b.avgER, 1) * 10);
     }
     if (profile.tiktokFollowers > 0) {
       const b = BENCHMARKS.tiktok;
