@@ -1,0 +1,33 @@
+import { DefaultSession, DefaultJWT } from 'next-auth';
+import { UserRole } from './api';
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string;
+      role: UserRole;
+      isVerified: boolean;
+      accessToken: string;
+      refreshToken: string;
+    } & DefaultSession['user'];
+  }
+
+  interface User {
+    id: string;
+    email: string;
+    role: UserRole;
+    isVerified: boolean;
+    accessToken: string;
+    refreshToken: string;
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT extends DefaultJWT {
+    id: string;
+    role: UserRole;
+    isVerified: boolean;
+    accessToken: string;
+    refreshToken: string;
+  }
+}
