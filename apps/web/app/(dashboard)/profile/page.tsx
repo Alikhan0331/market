@@ -96,29 +96,17 @@ function InfluencerProfileForm({ profile, token, onSave }: { profile?: Influence
         <Field label="Display name *" error={errors.displayName?.message}>
           <Input className={inputClass} {...register('displayName')} />
         </Field>
-        <Field label="Country" error={errors.country?.message}>
+        <Field label="Country">
           <Input className={inputClass} {...register('country')} />
         </Field>
         <Field label="City">
           <Input className={inputClass} {...register('city')} />
         </Field>
         <Field label="Price from (USD)" error={errors.priceFrom?.message}>
-          <Input
-            type="number"
-            className={inputClass}
-            {...register('priceFrom', {
-              setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-            })}
-          />
+          <Input type="number" className={inputClass} {...register('priceFrom', { setValueAs: (v) => (v === '' || v == null ? undefined : Number(v)) })} />
         </Field>
         <Field label="Price to (USD)" error={errors.priceTo?.message}>
-          <Input
-            type="number"
-            className={inputClass}
-            {...register('priceTo', {
-              setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-            })}
-          />
+          <Input type="number" className={inputClass} {...register('priceTo', { setValueAs: (v) => (v === '' || v == null ? undefined : Number(v)) })} />
         </Field>
       </div>
       <Field label="Bio">
@@ -126,64 +114,29 @@ function InfluencerProfileForm({ profile, token, onSave }: { profile?: Influence
       </Field>
       <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider pt-2">Instagram</p>
       <div className="grid grid-cols-3 gap-4">
-        <Field label="Handle">
-          <Input className={inputClass} placeholder="@handle" {...register('instagramHandle')} />
-        </Field>
+        <Field label="Handle"><Input className={inputClass} placeholder="@handle" {...register('instagramHandle')} /></Field>
         <Field label="Followers" error={errors.instagramFollowers?.message}>
-          <Input
-            type="number"
-            className={inputClass}
-            {...register('instagramFollowers', {
-              setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-            })}
-          />
+          <Input type="number" className={inputClass} {...register('instagramFollowers', { setValueAs: (v) => (v === '' || v == null ? undefined : Number(v)) })} />
         </Field>
         <Field label="ER (0–100%)" error={errors.instagramER?.message}>
-          <Input
-            type="number"
-            step="0.01"
-            className={inputClass}
-            {...register('instagramER', {
-              setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-            })}
-          />
+          <Input type="number" step="0.01" className={inputClass} {...register('instagramER', { setValueAs: (v) => (v === '' || v == null ? undefined : Number(v)) })} />
         </Field>
       </div>
       <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider pt-2">TikTok</p>
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Handle">
-          <Input className={inputClass} placeholder="@handle" {...register('tiktokHandle')} />
-        </Field>
+        <Field label="Handle"><Input className={inputClass} placeholder="@handle" {...register('tiktokHandle')} /></Field>
         <Field label="Followers" error={errors.tiktokFollowers?.message}>
-          <Input
-            type="number"
-            className={inputClass}
-            {...register('tiktokFollowers', {
-              setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-            })}
-          />
+          <Input type="number" className={inputClass} {...register('tiktokFollowers', { setValueAs: (v) => (v === '' || v == null ? undefined : Number(v)) })} />
         </Field>
       </div>
       <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider pt-2">YouTube</p>
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Handle">
-          <Input className={inputClass} placeholder="@handle" {...register('youtubeHandle')} />
-        </Field>
+        <Field label="Handle"><Input className={inputClass} placeholder="@handle" {...register('youtubeHandle')} /></Field>
         <Field label="Subscribers" error={errors.youtubeSubscribers?.message}>
-          <Input
-            type="number"
-            className={inputClass}
-            {...register('youtubeSubscribers', {
-              setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-            })}
-          />
+          <Input type="number" className={inputClass} {...register('youtubeSubscribers', { setValueAs: (v) => (v === '' || v == null ? undefined : Number(v)) })} />
         </Field>
       </div>
-      <button
-        type="submit"
-        className={buttonVariants() + ' bg-[#4F6EF7] hover:bg-[#3D5CE5] text-white'}
-        disabled={mutation.isPending}
-      >
+      <button type="submit" className={buttonVariants() + ' bg-[#4F6EF7] hover:bg-[#3D5CE5] text-white'} disabled={mutation.isPending}>
         {mutation.isPending ? 'Saving...' : 'Save profile'}
       </button>
     </form>
@@ -233,17 +186,9 @@ function BrandProfileForm({ profile, token, onSave }: { profile?: BrandProfile |
         </Field>
       </div>
       <Field label="Description">
-        <textarea
-          rows={3}
-          className={`w-full rounded-md border px-3 py-2 text-sm resize-none ${inputClass} focus:outline-none focus:ring-2 focus:ring-[#4F6EF7]`}
-          {...register('description')}
-        />
+        <textarea rows={3} className={`w-full rounded-md border px-3 py-2 text-sm resize-none ${inputClass} focus:outline-none focus:ring-2 focus:ring-[#4F6EF7]`} {...register('description')} />
       </Field>
-      <button
-        type="submit"
-        className={buttonVariants() + ' bg-[#4F6EF7] hover:bg-[#3D5CE5] text-white'}
-        disabled={mutation.isPending}
-      >
+      <button type="submit" className={buttonVariants() + ' bg-[#4F6EF7] hover:bg-[#3D5CE5] text-white'} disabled={mutation.isPending}>
         {mutation.isPending ? 'Saving...' : 'Save profile'}
       </button>
     </form>
@@ -276,13 +221,14 @@ export default function ProfilePage() {
   });
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['profile'] });
+  const hasProfile = isInfluencer ? !!influencerProfile : !!brandProfile;
 
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="text-lg font-semibold text-zinc-100">
         {isInfluencer ? 'Influencer Profile' : 'Brand Profile'}
       </h1>
-      {!profile && (
+      {!hasProfile && (
         <p className="text-sm text-zinc-500">
           Fill in your details below and click <strong className="text-zinc-300">Save profile</strong> to create your profile.
         </p>
