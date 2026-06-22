@@ -30,8 +30,11 @@ export const dealsApi = {
     token: string,
   ) => apiClient.patch<Deal>(`/deals/${id}/counter`, data, token),
 
-  complete: (id: string, token: string) =>
-    apiClient.patch<Deal>(`/deals/${id}/complete`, {}, token),
+  complete: (
+    id: string,
+    token: string,
+    data?: { brandRating?: number; revisionCount?: number },
+  ) => apiClient.patch<Deal>(`/deals/${id}/complete`, data ?? {}, token),
 
   cancel: (id: string, token: string) =>
     apiClient.patch<Deal>(`/deals/${id}/cancel`, {}, token),

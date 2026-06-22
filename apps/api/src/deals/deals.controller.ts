@@ -80,8 +80,12 @@ export class DealsController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.BRAND)
   @ApiOperation({ summary: 'Brand marks deal as completed' })
-  complete(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.dealsService.completeDeal(id, user);
+  complete(
+    @Param('id') id: string,
+    @CurrentUser() user: User,
+    @Body() body: { brandRating?: number; revisionCount?: number },
+  ) {
+    return this.dealsService.completeDeal(id, user, body);
   }
 
   @Patch(':id/cancel')

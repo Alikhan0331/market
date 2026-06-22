@@ -7,6 +7,8 @@ export interface MatchBreakdown {
   engagementScore: number;
   budgetScore: number;
   verificationScore: number;
+  partnershipBonus: number;
+  reliabilityBonus: number;
   matchedCategories: string[];
   reasons: string[];
 }

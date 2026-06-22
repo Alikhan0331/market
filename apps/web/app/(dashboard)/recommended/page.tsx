@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { buttonVariants } from '../../../components/ui/button';
 import { cn } from '../../../lib/utils';
 import { Sparkles, CheckCircle2, MapPin, Tag, DollarSign, TrendingUp, UserCircle2 } from 'lucide-react';
+import { TIER_COLOR } from '../../../lib/api/partnerships';
 
 function ReasonIcon({ reason }: { reason: string }) {
   if (reason.includes('country') || reason.includes('region') || reason.includes('country'))
@@ -24,8 +25,16 @@ function ReasonIcon({ reason }: { reason: string }) {
   return <CheckCircle2 className="h-3 w-3 shrink-0" />;
 }
 
+function partnershipTierFromBonus(bonus: number): string | null {
+  if (bonus >= 10) return 'EXCLUSIVE';
+  if (bonus >= 7)  return 'TRUSTED';
+  if (bonus >= 4)  return 'RETURNING';
+  return null;
+}
+
 function MatchCard({ result }: { result: MatchResult }) {
   const { influencer, matchScore, breakdown } = result;
+  const partnerTier = partnershipTierFromBonus(breakdown.partnershipBonus ?? 0);
   const topFollowers = Math.max(
     influencer.instagramFollowers ?? 0,
     influencer.tiktokFollowers ?? 0,
@@ -44,7 +53,14 @@ function MatchCard({ result }: { result: MatchResult }) {
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-zinc-100 truncate">{influencer.displayName}</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="text-sm font-medium text-zinc-100 truncate">{influencer.displayName}</p>
+              {partnerTier && (
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none ${TIER_COLOR[partnerTier as keyof typeof TIER_COLOR]}`}>
+                  {partnerTier === 'EXCLUSIVE' ? 'Exclusive' : partnerTier === 'TRUSTED' ? 'Trusted' : 'Returning'}
+                </span>
+              )}
+            </div>
             <p className="text-xs text-zinc-500">{influencer.country ?? 'Unknown country'}</p>
           </div>
         </div>
@@ -120,6 +136,21 @@ function MatchCard({ result }: { result: MatchResult }) {
           {breakdown.verificationScore > 0 && (
             <span className="text-[10px] rounded-full bg-zinc-800 px-1.5 py-0.5 text-zinc-400">
               verified +{Math.round(breakdown.verificationScore)}
+            </span>
+          )}
+          {(breakdown.partnershipBonus ?? 0) > 0 && (
+            <span className="text-[10px] rounded-full bg-amber-500/15 px-1.5 py-0.5 text-amber-400">
+              partner +{Math.round(breakdown.partnershipBonus)}
+            </span>
+          )}
+          {(breakdown.reliabilityBonus ?? 0) > 0 && (
+            <span className="text-[10px] rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-emerald-400">
+              reliable +{Math.round(breakdown.reliabilityBonus)}
+            </span>
+          )}
+          {(breakdown.reliabilityBonus ?? 0) < 0 && (
+            <span className="text-[10px] rounded-full bg-red-500/15 px-1.5 py-0.5 text-red-400">
+              reliability {Math.round(breakdown.reliabilityBonus)}
             </span>
           )}
         </div>

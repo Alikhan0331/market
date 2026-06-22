@@ -10,6 +10,10 @@ import { ScoringModule } from './scoring/scoring.module';
 import { YoutubeModule } from './youtube/youtube.module';
 import { MatchingModule } from './matching/matching.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
+import { ReliabilityModule } from './reliability/reliability.module';
+import { PricingModule } from './pricing/pricing.module';
+import { PartnershipModule } from './partnership/partnership.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
@@ -38,6 +42,10 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     ScoringModule,
     MatchingModule,
     CampaignsModule,
+    ReliabilityModule,
+    PricingModule,
+    PartnershipModule,
+    SchedulerModule,
   ],
   providers: [
     {

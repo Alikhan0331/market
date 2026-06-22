@@ -11,6 +11,10 @@ import { CreateDealDto } from './dto/create-deal.dto';
 import { CounterDealDto } from './dto/counter-deal.dto';
 import { User, UserRole } from '../common/entities/user.entity';
 import { ProfilesService } from '../profiles/profiles.service';
+import { ReliabilityService } from '../reliability/reliability.service';
+import { ReliabilityEventType } from '../reliability/entities/reliability-event.entity';
+import { PricingService } from '../pricing/pricing.service';
+import { PartnershipService } from '../partnership/partnership.service';
 
 @Injectable()
 export class DealsService {
@@ -18,10 +22,22 @@ export class DealsService {
     @InjectRepository(Deal)
     private dealsRepo: Repository<Deal>,
     private profilesService: ProfilesService,
+    private reliabilityService: ReliabilityService,
+    private pricingService: PricingService,
+    private partnershipService: PartnershipService,
   ) {}
 
   async createDeal(user: User, dto: CreateDealDto): Promise<Deal> {
     const brandProfile = await this.profilesService.getMyBrandProfile(user.id);
+
+    // Floor price enforcement
+    const pricing = await this.pricingService.calculatePricing(dto.influencerId);
+    if (pricing.hasEnoughData && dto.budget < pricing.floor) {
+      throw new BadRequestException(
+        `Budget $${(dto.budget / 100).toFixed(0)} is below the floor price of $${(pricing.floor / 100).toFixed(0)} for this influencer`,
+      );
+    }
+
     const deal = this.dealsRepo.create({
       brandId: brandProfile.id,
       influencerId: dto.influencerId,
@@ -90,12 +106,32 @@ export class DealsService {
     return this.dealsRepo.save(deal);
   }
 
-  async completeDeal(id: string, user: User): Promise<Deal> {
+  async completeDeal(
+    id: string,
+    user: User,
+    dto?: { brandRating?: number; revisionCount?: number },
+  ): Promise<Deal> {
     const deal = await this.getDeal(id, user);
     this.assertBrand(user);
     this.assertStatus(deal, [DealStatus.ACTIVE, DealStatus.ACCEPTED]);
     deal.status = DealStatus.COMPLETED;
-    return this.dealsRepo.save(deal);
+    if (dto?.brandRating) deal.brandRating = dto.brandRating;
+    if (dto?.revisionCount !== undefined) deal.revisionCount = dto.revisionCount;
+    const saved = await this.dealsRepo.save(deal);
+
+    // Update partnership score for this brand-influencer pair
+    await this.partnershipService.onDealCompleted(deal.brandId, deal.influencerId);
+
+    const now = new Date();
+    const deadline = new Date(deal.deadline);
+    const daysEarly = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    let eventType: ReliabilityEventType;
+    if (now > deadline) eventType = ReliabilityEventType.LATE;
+    else if (daysEarly > 2) eventType = ReliabilityEventType.COMPLETED_EARLY;
+    else eventType = ReliabilityEventType.COMPLETED_ON_TIME;
+
+    await this.reliabilityService.recordEvent(deal.influencerId, deal.id, eventType);
+    return saved;
   }
 
   async cancelDeal(id: string, user: User): Promise<Deal> {
@@ -106,8 +142,19 @@ export class DealsService {
       DealStatus.ACTIVE,
       DealStatus.ACCEPTED,
     ]);
+    const previousStatus = deal.status;
     deal.status = DealStatus.CANCELLED;
-    return this.dealsRepo.save(deal);
+    const saved = await this.dealsRepo.save(deal);
+
+    // Only log when deal was already accepted/active (influencer had committed)
+    if (previousStatus === DealStatus.ACTIVE || previousStatus === DealStatus.ACCEPTED) {
+      const eventType =
+        user.role === UserRole.INFLUENCER
+          ? ReliabilityEventType.CANCELLED_BY_INFLUENCER
+          : ReliabilityEventType.CANCELLED_BY_BRAND;
+      await this.reliabilityService.recordEvent(deal.influencerId, deal.id, eventType);
+    }
+    return saved;
   }
 
   private async assertParticipant(deal: Deal, user: User): Promise<void> {

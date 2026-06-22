@@ -12,6 +12,7 @@ export enum UserRole {
   BRAND = 'BRAND',
   INFLUENCER = 'INFLUENCER',
   ADMIN = 'ADMIN',
+  MODERATOR = 'MODERATOR',
 }
 
 @Entity('users')

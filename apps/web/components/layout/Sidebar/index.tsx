@@ -3,31 +3,41 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Search, Briefcase, User, BarChart2, Target } from 'lucide-react';
+import { Search, Briefcase, User, BarChart2, Target, ShieldCheck, Sparkles, BookOpen } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 
 const BRAND_NAV = [
-  { href: '/search',    label: 'Discover',  icon: Search },
-  { href: '/campaigns', label: 'Campaigns', icon: Target },
-  { href: '/deals',     label: 'Deals',     icon: Briefcase },
-  { href: '/profile',   label: 'Profile',   icon: User },
+  { href: '/search',        label: 'Discover',    icon: Search },
+  { href: '/recommended',   label: 'Recommended', icon: Sparkles },
+  { href: '/campaigns',     label: 'Campaigns',   icon: Target },
+  { href: '/deals',         label: 'Deals',       icon: Briefcase },
+  { href: '/profile',       label: 'Profile',     icon: User },
+  { href: '/how-it-works',  label: 'How it works', icon: BookOpen },
 ];
 
 const INFLUENCER_NAV = [
-  { href: '/deals',   label: 'Deals',   icon: Briefcase },
-  { href: '/profile', label: 'Profile', icon: User },
+  { href: '/deals',        label: 'Deals',        icon: Briefcase },
+  { href: '/profile',      label: 'Profile',      icon: User },
+  { href: '/how-it-works', label: 'How it works', icon: BookOpen },
+];
+
+const MODERATOR_NAV = [
+  { href: '/moderator/disputes', label: 'Disputes', icon: ShieldCheck },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = (session?.user as any)?.role as string | undefined;
-  const nav = role === 'BRAND' ? BRAND_NAV : INFLUENCER_NAV;
+  const nav =
+    role === 'BRAND' ? BRAND_NAV :
+    role === 'MODERATOR' ? MODERATOR_NAV :
+    INFLUENCER_NAV;
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-zinc-800 bg-zinc-900 py-4">
       <div className="px-4 pb-4">
-        <Link href={role === 'BRAND' ? '/search' : '/deals'} className="flex items-center gap-2">
+        <Link href={role === 'BRAND' ? '/search' : role === 'MODERATOR' ? '/moderator/disputes' : '/deals'} className="flex items-center gap-2">
           <BarChart2 className="h-5 w-5 text-[#4F6EF7]" />
           <span className="text-sm font-semibold text-zinc-100">Influence</span>
         </Link>

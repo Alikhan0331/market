@@ -129,6 +129,9 @@ export class InfluencerProfile {
   })
   verificationStatus: VerificationStatus;
 
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, default: null })
+  reliabilityScore: number | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

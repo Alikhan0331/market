@@ -7,14 +7,36 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 import { influencersApi } from '../../../lib/api/influencers';
 import { brandsApi } from '../../../lib/api/brands';
+import { reliabilityApi, ReliabilityEvent } from '../../../lib/api/reliability';
+import { partnershipsApi, TIER_LABELS, TIER_COLOR } from '../../../lib/api/partnerships';
 import { buttonVariants } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import { InfluencerProfile, BrandProfile } from '../../../types/api';
 import { YoutubeConnector } from '../../../components/shared/YoutubeConnector';
 import { ScoreBreakdown } from '../../../components/shared/ScoreBreakdown';
+import { ShieldCheck } from 'lucide-react';
+
+const EVENT_LABEL: Record<string, string> = {
+  COMPLETED_ON_TIME: 'Completed on time',
+  COMPLETED_EARLY: 'Completed early',
+  LATE: 'Late delivery',
+  CANCELLED_BY_INFLUENCER: 'Cancelled',
+  CANCELLED_BY_BRAND: 'Cancelled by brand',
+  NO_RESPONSE: 'No response',
+};
+
+const EVENT_COLOR: Record<string, string> = {
+  COMPLETED_ON_TIME: 'text-emerald-400',
+  COMPLETED_EARLY: 'text-emerald-400',
+  LATE: 'text-red-400',
+  CANCELLED_BY_INFLUENCER: 'text-red-400',
+  CANCELLED_BY_BRAND: 'text-zinc-500',
+  NO_RESPONSE: 'text-amber-400',
+};
 
 const influencerSchema = z.object({
   displayName: z.string().min(1, 'Required'),
@@ -234,6 +256,18 @@ export default function ProfilePage() {
     enabled: !!token && isInfluencer,
   });
 
+  const { data: reliabilityEvents } = useQuery({
+    queryKey: ['reliability-events-mine', influencerProfile?.id],
+    queryFn: () => reliabilityApi.getEvents(influencerProfile!.id, token),
+    enabled: !!token && isInfluencer && !!influencerProfile?.id,
+  });
+
+  const { data: myPartnerships } = useQuery({
+    queryKey: ['partnerships-mine'],
+    queryFn: () => partnershipsApi.getForInfluencer(token),
+    enabled: !!token && isInfluencer,
+  });
+
   const { data: brandProfile } = useQuery({
     queryKey: ['profile', 'brand'],
     queryFn: async () => {
@@ -266,6 +300,84 @@ export default function ProfilePage() {
             lastSyncAt={influencerProfile?.youtubeLastSyncAt as any}
             onSaved={invalidate}
           />
+          {myPartnerships && myPartnerships.filter((p) => p.tier !== 'NONE').length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-sm font-medium text-zinc-400 uppercase tracking-wider">
+                Partner Brands
+              </h2>
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900 divide-y divide-zinc-800">
+                {myPartnerships
+                  .filter((p) => p.tier !== 'NONE')
+                  .map((p) => (
+                    <div key={p.id} className="flex items-center justify-between px-4 py-3">
+                      <div>
+                        <p className="text-sm font-medium text-zinc-100">
+                          {p.brand?.companyName ?? '—'}
+                        </p>
+                        <p className="text-xs text-zinc-500">{p.completedDealsCount} completed deals</p>
+                      </div>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${TIER_COLOR[p.tier]}`}>
+                        {TIER_LABELS[p.tier]}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {influencerProfile && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  Reliability Score
+                </h2>
+                <span className={`text-xl font-semibold tabular-nums ${
+                  Number(influencerProfile.reliabilityScore) >= 80 ? 'text-emerald-400'
+                  : Number(influencerProfile.reliabilityScore) >= 50 ? 'text-amber-400'
+                  : 'text-red-400'
+                }`}>
+                  {Math.round(Number(influencerProfile.reliabilityScore ?? 100))}
+                  <span className="text-sm font-normal text-zinc-500 ml-0.5">/ 100</span>
+                </span>
+              </div>
+
+              {reliabilityEvents && reliabilityEvents.length > 0 ? (
+                <div className="rounded-lg border border-zinc-800 bg-zinc-900 divide-y divide-zinc-800">
+                  {reliabilityEvents.map((event: ReliabilityEvent) => (
+                    <div key={event.id} className="flex items-center justify-between px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-medium ${EVENT_COLOR[event.eventType] ?? 'text-zinc-300'}`}>
+                          {EVENT_LABEL[event.eventType] ?? event.eventType}
+                        </span>
+                        {event.status === 'DISPUTED' && (
+                          <span className="text-xs rounded-full bg-amber-500/15 text-amber-400 px-2 py-0.5">Disputed</span>
+                        )}
+                        {event.status === 'DISMISSED' && (
+                          <span className="text-xs rounded-full bg-emerald-500/15 text-emerald-400 px-2 py-0.5">Removed</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-zinc-500">
+                          {new Date(event.createdAt).toLocaleDateString()}
+                        </span>
+                        {event.dealId && event.status === 'ACTIVE' && (
+                          <Link
+                            href={`/deals/${event.dealId}`}
+                            className="text-xs text-[#4F6EF7] hover:underline"
+                          >
+                            Dispute →
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-zinc-500">No deal history yet — your score will build over time.</p>
+              )}
+            </div>
+          )}
         </>
       ) : (
         <BrandProfileForm profile={brandProfile} token={token} onSave={invalidate} />

@@ -32,7 +32,18 @@ export function InfluencerCard({ influencer }: InfluencerCardProps) {
             <p className="text-xs text-zinc-500">{influencer.country}</p>
           </div>
         </div>
-        <ScoreBadge score={influencer.overallScore} className="shrink-0" />
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <ScoreBadge score={influencer.overallScore} />
+          {influencer.reliabilityScore !== undefined && (
+            <span className={`text-xs font-medium tabular-nums ${
+              Number(influencer.reliabilityScore) >= 80 ? 'text-emerald-400'
+              : Number(influencer.reliabilityScore) >= 50 ? 'text-amber-400'
+              : 'text-red-400'
+            }`}>
+              {Math.round(Number(influencer.reliabilityScore))}% reliable
+            </span>
+          )}
+        </div>
       </div>
 
       {influencer.categories.length > 0 && (

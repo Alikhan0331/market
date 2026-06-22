@@ -50,7 +50,14 @@
       "Bash(git fetch *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "WebFetch(domain:www.wooppay.com)",
+      "WebFetch(domain:www.woopkassa.com)",
+      "Bash(node -e \"const bcrypt = require\\('bcrypt'\\); bcrypt.hash\\('moderator123', 12\\).then\\(h => console.log\\(h\\)\\)\")",
+      "Bash(psql -U postgres -d influencer_marketplace -c 'INSERT INTO users \\(id, email, password, role, \"isVerified\", \"googleId\", \"createdAt\", \"updatedAt\"\\) VALUES \\(gen_random_uuid\\(\\), '\\\\''moderator@test.com'\\\\'', '\\\\''$2b$12$opO0wVhZtJD800NmwFJkyez1kY7DvdPTILgevmi1WFADYua6u11vG'\\\\'', '\\\\''MODERATOR'\\\\'', true, NULL, now\\(\\), now\\(\\)\\) ON CONFLICT \\(email\\) DO UPDATE SET role = '\\\\''MODERATOR'\\\\'';')",
+      "Bash(psql -U postgres -d influencer_marketplace -c \"SELECT id, email, role FROM users WHERE email = 'moderator@test.com';\")",
+      "PowerShell($env:PGPASSWORD = 'postgres'; psql -U postgres -d influencer_marketplace -c \"SELECT id, email, role FROM users WHERE email = 'moderator@test.com';\")",
+      "Bash(npx ts-node *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\user\\Desktop\\desk\\projects\\startup\\apps\\web\\app\\(dashboard)\\deals",

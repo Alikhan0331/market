@@ -71,6 +71,17 @@ export class Deal {
   @Column({ type: 'text', nullable: true })
   counterNote: string;
 
+  // Brand signals captured at completion (optional, for analytics)
+  @Column({ nullable: true })
+  brandRating: number;
+
+  @Column({ nullable: true })
+  revisionCount: number;
+
+  // No-response warning flow
+  @Column({ type: 'timestamp', nullable: true })
+  noResponseWarnedAt: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

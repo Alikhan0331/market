@@ -1,4 +1,4 @@
-export type UserRole = 'BRAND' | 'INFLUENCER' | 'ADMIN';
+export type UserRole = 'BRAND' | 'INFLUENCER' | 'ADMIN' | 'MODERATOR';
 
 export type VerificationStatus = 'UNVERIFIED' | 'VERIFIED' | 'WARNING' | 'SUSPICIOUS';
 
@@ -67,6 +67,7 @@ export interface InfluencerProfile {
   audienceScore?: number;
   overallScore?: number;
   verificationStatus: VerificationStatus;
+  reliabilityScore?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -82,6 +83,9 @@ export interface Deal {
   deadline: string;
   counterBudget?: number;
   counterNote?: string;
+  brandRating?: number | null;
+  revisionCount?: number | null;
+  noResponseWarnedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   brand?: BrandProfile;

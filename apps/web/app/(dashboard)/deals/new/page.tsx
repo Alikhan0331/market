@@ -9,11 +9,80 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { dealsApi } from '../../../../lib/api/deals';
+import { pricingApi, PricingResult } from '../../../../lib/api/pricing';
 import { Button, buttonVariants } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
 import { Label } from '../../../../components/ui/label';
 import { cn } from '../../../../lib/utils';
+import { formatPrice } from '../../../../lib/utils/formatters';
+import { Zap } from 'lucide-react';
+
+function PricingZones({ pricing, budgetCents }: { pricing: PricingResult; budgetCents: number }) {
+  if (!pricing.hasEnoughData) return null;
+
+  const zone =
+    budgetCents < pricing.floor ? 'below'
+    : budgetCents < pricing.recommended ? 'low'
+    : budgetCents <= pricing.high ? 'good'
+    : 'premium';
+
+  const zoneLabel: Record<string, { label: string; color: string }> = {
+    below:   { label: 'Below floor — offer will be blocked', color: 'text-red-400' },
+    low:     { label: 'Budget offer — lower acceptance chance', color: 'text-amber-400' },
+    good:    { label: 'Good offer — recommended range', color: 'text-emerald-400' },
+    premium: { label: 'Premium offer — high acceptance chance', color: 'text-[#4F6EF7]' },
+  };
+
+  return (
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-zinc-500 uppercase tracking-wider">Price zones</p>
+        {pricing.demandSurge && (
+          <span className="flex items-center gap-1 text-xs text-amber-400 bg-amber-500/10 rounded-full px-2 py-0.5">
+            <Zap className="h-3 w-3" />
+            High demand +20%
+          </span>
+        )}
+      </div>
+
+      {/* Zone bar */}
+      <div className="relative h-2 rounded-full bg-zinc-800 overflow-hidden">
+        <div className="absolute inset-y-0 left-0 w-[33%] bg-amber-500/40 rounded-l-full" />
+        <div className="absolute inset-y-0 left-[33%] w-[34%] bg-emerald-500/40" />
+        <div className="absolute inset-y-0 left-[67%] w-[33%] bg-[#4F6EF7]/40 rounded-r-full" />
+        {budgetCents > 0 && (
+          <div
+            className={`absolute inset-y-0 w-0.5 bg-white rounded-full transition-all ${zone === 'below' ? 'opacity-0' : ''}`}
+            style={{
+              left: `${Math.min(98, Math.max(1, ((budgetCents - pricing.floor) / (pricing.high - pricing.floor)) * 67 + 33))}%`,
+            }}
+          />
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 text-center">
+        {[
+          { label: 'Floor', value: pricing.floor, color: 'text-amber-400' },
+          { label: 'Recommended', value: pricing.recommended, color: 'text-emerald-400' },
+          { label: 'High', value: pricing.high, color: 'text-[#4F6EF7]' },
+        ].map(({ label, value, color }) => (
+          <div key={label}>
+            <p className={`text-sm font-semibold tabular-nums ${color}`}>{formatPrice(value)}</p>
+            <p className="text-xs text-zinc-500">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {budgetCents > 0 && (
+        <p className={`text-xs font-medium ${zoneLabel[zone].color}`}>
+          {zoneLabel[zone].label}
+        </p>
+      )}
+    </div>
+  );
+}
 
 const schema = z.object({
     budget: z.number().min(1, 'Budget must be at least $1'),
@@ -53,6 +122,13 @@ function NewDealPageContent() {
 
     const format = watch('format');
     const deadline = watch('deadline');
+    const budget = watch('budget');
+
+    const { data: pricing } = useQuery({
+      queryKey: ['pricing', influencerId],
+      queryFn: () => pricingApi.get(influencerId, token),
+      enabled: !!token && !!influencerId,
+    });
 
     const mutation = useMutation({
         mutationFn: (data: FormData) =>
@@ -128,6 +204,9 @@ function NewDealPageContent() {
                         {...register('budget', { valueAsNumber: true })}
                     />
                     {errors.budget && <p className="text-xs text-red-400">{errors.budget.message}</p>}
+                    {pricing && (
+                      <PricingZones pricing={pricing} budgetCents={(budget || 0) * 100} />
+                    )}
                 </div>
 
                 {/* Deadline */}

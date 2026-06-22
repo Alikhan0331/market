@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { dealsApi } from '../../../../lib/api/deals';
+import { reliabilityApi, ReliabilityEvent } from '../../../../lib/api/reliability';
 import { DealStatusBadge } from '../../../../components/shared/DealStatusBadge';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
@@ -21,11 +22,50 @@ export default function DealDetailPage() {
   const role = (session?.user as any)?.role as string;
   const [counterBudget, setCounterBudget] = useState('');
   const [counterNote, setCounterNote] = useState('');
+  const [disputeReason, setDisputeReason] = useState('');
+  const [disputingEventId, setDisputingEventId] = useState<string | null>(null);
+  const [brandRating, setBrandRating] = useState<number | null>(null);
+  const [revisionCount, setRevisionCount] = useState('');
 
   const { data: deal, isLoading } = useQuery({
     queryKey: ['deal', id],
     queryFn: () => dealsApi.getById(id, token),
     enabled: !!token,
+  });
+
+  const { data: reliabilityEvents } = useQuery({
+    queryKey: ['reliability-events-deal', id],
+    queryFn: async () => {
+      if (!deal?.influencer?.id) return [];
+      const events = await reliabilityApi.getEvents(deal.influencer.id, token);
+      return events.filter((e) => e.dealId === id);
+    },
+    enabled: !!token && !!deal && role === 'INFLUENCER',
+  });
+
+  const reportNoResponse = useMutation({
+    mutationFn: () => reliabilityApi.reportNoResponse(id, token),
+    onSuccess: (data: any) => {
+      if (data?.warned) {
+        toast.success('Warning sent. If the influencer does not respond within 24 hours, click again to record no response.');
+        invalidate();
+      } else {
+        toast.success('No response recorded');
+        invalidate();
+      }
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Failed to report'),
+  });
+
+  const openDispute = useMutation({
+    mutationFn: () =>
+      reliabilityApi.openDispute(disputingEventId!, disputeReason, token),
+    onSuccess: () => {
+      toast.success('Dispute submitted');
+      setDisputingEventId(null);
+      setDisputeReason('');
+    },
+    onError: () => toast.error('Failed to submit dispute'),
   });
 
   const invalidate = () => {
@@ -53,7 +93,10 @@ export default function DealDetailPage() {
   });
 
   const complete = useMutation({
-    mutationFn: () => dealsApi.complete(id, token),
+    mutationFn: () => dealsApi.complete(id, token, {
+      brandRating: brandRating ?? undefined,
+      revisionCount: revisionCount ? Number(revisionCount) : undefined,
+    }),
     onSuccess: () => { toast.success('Deal marked as completed'); invalidate(); },
     onError: () => toast.error('Failed to complete'),
   });
@@ -66,6 +109,12 @@ export default function DealDetailPage() {
 
   if (isLoading) return <div className="h-40 rounded-lg border border-zinc-800 bg-zinc-900 animate-pulse" />;
   if (!deal) return <p className="text-zinc-400">Deal not found</p>;
+
+  const dealAgeInDays = deal
+    ? (Date.now() - new Date(deal.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+    : 0;
+  const canReportNoResponse =
+    role === 'BRAND' && deal?.status === 'PENDING' && dealAgeInDays >= 3;
 
   const canAcceptReject =
     (role === 'INFLUENCER' && (deal.status === 'PENDING' || deal.status === 'COUNTERED')) ||
@@ -161,7 +210,64 @@ export default function DealDetailPage() {
             Cancel
           </Button>
         )}
+        {canReportNoResponse && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+            disabled={reportNoResponse.isPending}
+            onClick={() => reportNoResponse.mutate()}
+          >
+            Report no response
+          </Button>
+        )}
       </div>
+
+      {canComplete && (
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 space-y-3">
+          <p className="text-xs text-zinc-500 uppercase tracking-wider">Before marking complete (optional)</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-zinc-400">Quality rating (1–5)</Label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setBrandRating(brandRating === star ? null : star)}
+                    className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
+                      brandRating === star
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    }`}
+                  >
+                    {star}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-zinc-400">Revisions requested</Label>
+              <Input
+                type="number"
+                min="0"
+                value={revisionCount}
+                onChange={(e) => setRevisionCount(e.target.value)}
+                placeholder="0"
+                className="border-zinc-700 bg-zinc-800 text-zinc-100 w-24"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deal.noResponseWarnedAt && deal.status === 'PENDING' && role === 'INFLUENCER' && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+          <p className="text-sm text-amber-400 font-medium">Action required</p>
+          <p className="text-xs text-amber-400/70 mt-0.5">
+            The brand reported no response. Please accept, reject, or counter this offer to avoid a reliability penalty.
+          </p>
+        </div>
+      )}
 
       {canCounter && (
         <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 space-y-3">
@@ -197,6 +303,76 @@ export default function DealDetailPage() {
           >
             Send counter
           </Button>
+        </div>
+      )}
+
+      {role === 'INFLUENCER' && reliabilityEvents && reliabilityEvents.length > 0 && (
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 space-y-3">
+          <p className="text-xs text-zinc-500 uppercase tracking-wider">Reliability events</p>
+          {reliabilityEvents.map((event: ReliabilityEvent) => (
+            <div key={event.id} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className={`text-sm font-medium ${
+                  ['COMPLETED_ON_TIME', 'COMPLETED_EARLY'].includes(event.eventType)
+                    ? 'text-emerald-400'
+                    : event.eventType === 'CANCELLED_BY_BRAND'
+                    ? 'text-zinc-400'
+                    : 'text-red-400'
+                }`}>
+                  {event.eventType.replace(/_/g, ' ')}
+                </span>
+                <span className={`text-xs rounded-full px-2 py-0.5 ${
+                  event.status === 'ACTIVE' ? 'bg-zinc-800 text-zinc-400'
+                  : event.status === 'DISPUTED' ? 'bg-amber-500/15 text-amber-400'
+                  : event.status === 'DISMISSED' ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'bg-red-500/15 text-red-400'
+                }`}>
+                  {event.status}
+                </span>
+              </div>
+              {event.status === 'ACTIVE' && (
+                <>
+                  {disputingEventId === event.id ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={disputeReason}
+                        onChange={(e) => setDisputeReason(e.target.value)}
+                        placeholder="Explain why this event is wrong..."
+                        className="border-zinc-700 bg-zinc-800 text-zinc-100 text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-[#4F6EF7] hover:bg-[#3D5CE5] text-white"
+                          disabled={!disputeReason || openDispute.isPending}
+                          onClick={() => openDispute.mutate()}
+                        >
+                          Submit dispute
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-zinc-500"
+                          onClick={() => { setDisputingEventId(null); setDisputeReason(''); }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-zinc-700 text-zinc-400 hover:bg-zinc-800 text-xs"
+                      onClick={() => setDisputingEventId(event.id)}
+                    >
+                      Dispute this event
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

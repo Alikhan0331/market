@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InfluencerProfile } from '../profiles/entities/influencer-profile.entity';
 import { BrandProfile } from '../profiles/entities/brand-profile.entity';
+import { PartnershipService } from '../partnership/partnership.service';
+import { PartnershipTier } from '../partnership/entities/partnership-score.entity';
 
 const INDUSTRY_CATEGORY_MAP: Record<string, string[]> = {
   fashion:       ['Fashion', 'Lifestyle', 'Beauty', 'Travel'],
@@ -54,6 +56,8 @@ export interface MatchBreakdown {
   engagementScore: number;
   budgetScore: number;
   verificationScore: number;
+  partnershipBonus: number;
+  reliabilityBonus: number;
   matchedCategories: string[];
   reasons: string[];
 }
@@ -65,6 +69,7 @@ export class MatchingService {
     private influencerRepo: Repository<InfluencerProfile>,
     @InjectRepository(BrandProfile)
     private brandRepo: Repository<BrandProfile>,
+    private partnershipService: PartnershipService,
   ) {}
 
   async getRecommended(brandUserId: string, limit = 20): Promise<MatchResult[]> {
@@ -76,19 +81,28 @@ export class MatchingService {
       order: { createdAt: 'DESC' },
     });
 
+    // Load all partnerships for this brand in one query for efficient lookup
+    const partnerships = await this.partnershipService.getAllPartnershipsForBrand(brand.id);
+
     return influencers
-      .map((inf) => this.scoreMatch(brand, inf))
+      .map((inf) => this.scoreMatch(brand, inf, partnerships))
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, limit);
   }
 
-  private scoreMatch(brand: BrandProfile, influencer: InfluencerProfile): MatchResult {
+  private scoreMatch(
+    brand: BrandProfile,
+    influencer: InfluencerProfile,
+    partnerships: Map<string, PartnershipTier> = new Map(),
+  ): MatchResult {
     const breakdown: MatchBreakdown = {
       categoryScore: 0,
       countryScore: 0,
       engagementScore: 0,
       budgetScore: 0,
       verificationScore: 0,
+      partnershipBonus: 0,
+      reliabilityBonus: 0,
       matchedCategories: [],
       reasons: [],
     };
@@ -171,12 +185,47 @@ export class MatchingService {
         breakdown.verificationScore = 0;
     }
 
+    // ── 6. Partnership bonus (0–10) ──────────────────────────────────────────
+    const tier = partnerships.get(influencer.id) ?? PartnershipTier.NONE;
+    switch (tier) {
+      case PartnershipTier.EXCLUSIVE:
+        breakdown.partnershipBonus = 10;
+        breakdown.reasons.push('Exclusive Partner — proven collaboration history');
+        break;
+      case PartnershipTier.TRUSTED:
+        breakdown.partnershipBonus = 7;
+        breakdown.reasons.push('Trusted Partner — multiple successful deals');
+        break;
+      case PartnershipTier.RETURNING:
+        breakdown.partnershipBonus = 4;
+        breakdown.reasons.push('Returning Partner — worked together before');
+        break;
+    }
+
+    // ── 7. Reliability bonus (-5 to +8) ─────────────────────────────────────
+    const reliability = influencer.reliabilityScore !== null
+      ? Number(influencer.reliabilityScore)
+      : null;
+    if (reliability !== null) {
+      if (reliability >= 80) {
+        breakdown.reliabilityBonus = 8;
+        breakdown.reasons.push(`Highly reliable (${Math.round(reliability)}% score)`);
+      } else if (reliability >= 60) {
+        breakdown.reliabilityBonus = 4;
+      } else if (reliability < 40) {
+        breakdown.reliabilityBonus = -5;
+        breakdown.reasons.push(`Low reliability score (${Math.round(reliability)}%)`);
+      }
+    }
+
     const matchScore = Math.round(
       breakdown.categoryScore +
       breakdown.countryScore +
       breakdown.engagementScore +
       breakdown.budgetScore +
-      breakdown.verificationScore,
+      breakdown.verificationScore +
+      breakdown.partnershipBonus +
+      breakdown.reliabilityBonus,
     );
 
     return { influencer, matchScore, breakdown };
