@@ -15,7 +15,7 @@ import { partnershipsApi, TIER_LABELS, TIER_COLOR } from '../../../lib/api/partn
 import { buttonVariants } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
-import { InfluencerProfile, BrandProfile } from '../../../types/api';
+import { InfluencerProfile, BrandProfile, AvailabilityStatus, AVAILABILITY_LABELS, AVAILABILITY_COLOR } from '../../../types/api';
 import { YoutubeConnector } from '../../../components/shared/YoutubeConnector';
 import { ScoreBreakdown } from '../../../components/shared/ScoreBreakdown';
 import { ShieldCheck } from 'lucide-react';
@@ -38,12 +38,19 @@ const EVENT_COLOR: Record<string, string> = {
   NO_RESPONSE: 'text-amber-400',
 };
 
+const ALL_STATUSES: AvailabilityStatus[] = [
+  'ACTIVELY_LOOKING',
+  'CONSIDERING',
+  'NOT_LOOKING',
+  'BUSY',
+];
+
 const influencerSchema = z.object({
   displayName: z.string().min(1, 'Required'),
   bio: z.string().optional(),
   country: z.string().optional(),
   city: z.string().optional(),
-  categories: z.string().optional(), // comma-separated, converted to array before submit
+  categories: z.string().optional(),
   instagramHandle: z.string().optional(),
   instagramFollowers: z.number().min(0).optional(),
   instagramER: z.number().min(0).max(100).optional(),
@@ -83,6 +90,41 @@ function Field({ label, children, error, hint }: { label: string; children: Reac
 
 const inputClass = 'border-zinc-700 bg-zinc-800 text-zinc-100 placeholder:text-zinc-500';
 
+function AvailabilityPicker({ current, token, onSaved }: {
+  current: AvailabilityStatus;
+  token: string;
+  onSaved: () => void;
+}) {
+  const mutation = useMutation({
+    mutationFn: (status: AvailabilityStatus) => influencersApi.updateAvailability(status, token),
+    onSuccess: () => { toast.success('Availability updated'); onSaved(); },
+    onError: (err: any) => toast.error(err?.message ?? 'Update failed'),
+  });
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Availability Status</p>
+      <div className="grid grid-cols-2 gap-2">
+        {ALL_STATUSES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate(s)}
+            className={`rounded-lg border px-3 py-2 text-sm font-medium text-left transition-all ${
+              current === s
+                ? `${AVAILABILITY_COLOR[s]} border-current`
+                : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+            }`}
+          >
+            {AVAILABILITY_LABELS[s]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function InfluencerProfileForm({ profile, token, onSave }: { profile?: InfluencerProfile | null; token: string; onSave: () => void }) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<InfluencerForm>({
     resolver: zodResolver(influencerSchema),
@@ -115,7 +157,6 @@ function InfluencerProfileForm({ profile, token, onSave }: { profile?: Influence
 
   const mutation = useMutation({
     mutationFn: (data: InfluencerForm) => {
-      // Convert comma-separated categories string to array
       const categories = data.categories
         ? data.categories.split(',').map((c) => c.trim()).filter(Boolean)
         : [];
@@ -127,6 +168,13 @@ function InfluencerProfileForm({ profile, token, onSave }: { profile?: Influence
 
   return (
     <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-5">
+      {profile && (
+        <AvailabilityPicker
+          current={profile.availabilityStatus ?? 'ACTIVELY_LOOKING'}
+          token={token}
+          onSaved={onSave}
+        />
+      )}
       <div className="grid grid-cols-2 gap-4">
         <Field label="Display name *" error={errors.displayName?.message}>
           <Input className={inputClass} {...register('displayName')} />
