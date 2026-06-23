@@ -20,6 +20,7 @@ import { UpdateBrandDto } from './dto/update-brand.dto';
 import { CreateInfluencerDto } from './dto/create-influencer.dto';
 import { UpdateInfluencerDto } from './dto/update-influencer.dto';
 import { UpdateYoutubeStatsDto } from './dto/update-youtube-stats.dto';
+import { UpdateAvailabilityDto } from './dto/update-availability.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -89,6 +90,14 @@ export class ProfilesController {
   @ApiOperation({ summary: 'Upsert own influencer profile' })
   updateMyInfluencer(@CurrentUser() user: User, @Body() dto: UpdateInfluencerDto) {
     return this.profilesService.upsertInfluencerProfile(user.id, dto);
+  }
+
+  @Patch('influencers/me/availability')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.INFLUENCER)
+  @ApiOperation({ summary: 'Update own availability status' })
+  updateMyAvailability(@CurrentUser() user: User, @Body() dto: UpdateAvailabilityDto) {
+    return this.profilesService.updateAvailabilityStatus(user.id, dto.availabilityStatus);
   }
 
   @Patch('influencers/me/youtube')
