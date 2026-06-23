@@ -19,7 +19,7 @@ const DEFAULT_FILTERS: Filters = {
   category: '',
   platform: '',
   minFollowers: 0,
-  maxFollowers: 1_000_000,
+  maxFollowers: 0,  // 0 = not set, do not send to API
   minPrice: 0,
   maxPrice: 0,
   minER: 0,
@@ -49,7 +49,7 @@ export default function SearchPage() {
     ...(filters.category && { category: filters.category }),
     ...(filters.platform && { platform: filters.platform as any }),
     ...(filters.minFollowers > 0 && { minFollowers: filters.minFollowers }),
-    ...(filters.maxFollowers < 1_000_000 && { maxFollowers: filters.maxFollowers }),
+    ...(filters.maxFollowers > 0 && { maxFollowers: filters.maxFollowers }),
     ...(filters.minPrice > 0 && { minPrice: filters.minPrice }),
     ...(filters.maxPrice > 0 && { maxPrice: filters.maxPrice }),
     ...(filters.minER > 0 && { minER: filters.minER }),
@@ -83,7 +83,7 @@ export default function SearchPage() {
   return (
     <div className="flex flex-col gap-6">
 
-      {/* ── Header ─────────────────────────────────────────────────── */}
+      {/* ── Header ────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-zinc-100">Discover</h1>
 
@@ -112,7 +112,7 @@ export default function SearchPage() {
         )}
       </div>
 
-      {/* ── Табы ───────────────────────────────────────────────────── */}
+      {/* ── Табы ───────────────────────────────────────────────────────────── */}
       <div className="flex gap-1 border-b border-zinc-800 -mt-2">
         <button
           type="button"
@@ -152,7 +152,7 @@ export default function SearchPage() {
         </button>
       </div>
 
-      {/* ── Контент ────────────────────────────────────────────────── */}
+      {/* ── Контент ─────────────────────────────────────────────────────────────── */}
       <div className="flex gap-6">
         {tab === 'all' && showFilters && (
           <FilterSidebar filters={filters} onChange={handleFiltersChange} />
