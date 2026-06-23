@@ -16,6 +16,13 @@ export enum VerificationStatus {
   SUSPICIOUS = 'SUSPICIOUS',
 }
 
+export enum AvailabilityStatus {
+  ACTIVELY_LOOKING = 'ACTIVELY_LOOKING',
+  CONSIDERING = 'CONSIDERING',
+  NOT_LOOKING = 'NOT_LOOKING',
+  BUSY = 'BUSY',
+}
+
 @Entity('influencer_profiles')
 export class InfluencerProfile {
   @PrimaryGeneratedColumn('uuid')
@@ -54,6 +61,13 @@ export class InfluencerProfile {
 
   @Column({ nullable: true })
   priceTo: number;
+
+  @Column({
+    type: 'enum',
+    enum: AvailabilityStatus,
+    default: AvailabilityStatus.ACTIVELY_LOOKING,
+  })
+  availabilityStatus: AvailabilityStatus;
 
   // Instagram
   @Column({ nullable: true })
