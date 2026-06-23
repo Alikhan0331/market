@@ -39,6 +39,16 @@ async function request<T>(
 
 export const apiClient = {
   get: <T>(path: string, token?: string) => request<T>(path, { method: 'GET' }, token),
+  getWithParams: <T>(path: string, params: Record<string, unknown>, token?: string) => {
+    const qs = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== '') {
+        qs.set(key, String(value));
+      }
+    }
+    const query = qs.toString();
+    return request<T>(query ? `${path}?${query}` : path, { method: 'GET' }, token);
+  },
   post: <T>(path: string, body: unknown, token?: string) =>
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }, token),
   put: <T>(path: string, body: unknown, token?: string) =>
