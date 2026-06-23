@@ -16,6 +16,7 @@ import { formatFollowers, formatER, formatPrice } from '../../../../lib/utils/fo
 import { MapPin, ShieldCheck, Zap, TrendingUp, TrendingDown, HelpCircle, X } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
 import { useState } from 'react';
+import { AVAILABILITY_LABELS, AVAILABILITY_COLOR, AvailabilityStatus } from '../../../../types/api';
 
 const POSITION_CONFIG = {
   above_market:  { label: 'Above market',  color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
@@ -23,6 +24,14 @@ const POSITION_CONFIG = {
   below_market:  { label: 'Below market',  color: 'text-amber-400',   bg: 'bg-amber-500/10 border-amber-500/20' },
   no_data:       { label: 'No market data', color: 'text-zinc-500',   bg: 'bg-zinc-800 border-zinc-700' },
 };
+
+function AvailabilityBadge({ status }: { status: AvailabilityStatus }) {
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${AVAILABILITY_COLOR[status]}`}>
+      {AVAILABILITY_LABELS[status]}
+    </span>
+  );
+}
 
 function PricingBreakdownModal({
   breakdown,
@@ -215,6 +224,12 @@ export default function InfluencerProfilePage() {
               <MapPin className="h-3.5 w-3.5" />
               {influencer.country}{influencer.city && `, ${influencer.city}`}
             </div>
+            {/* Availability status */}
+            {influencer.availabilityStatus && (
+              <div className="mt-2">
+                <AvailabilityBadge status={influencer.availabilityStatus} />
+              </div>
+            )}
             <div className="flex flex-wrap gap-1 mt-2">
               {influencer.categories.map((cat) => (
                 <Badge key={cat} variant="outline" className="border-zinc-700 text-zinc-400 text-xs">

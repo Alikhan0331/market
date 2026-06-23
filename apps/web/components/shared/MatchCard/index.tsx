@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar';
 import { buttonVariants } from '../../ui/button';
 import { formatFollowers, formatER } from '../../../lib/utils/formatters';
 import { cn } from '../../../lib/utils';
+import { AVAILABILITY_LABELS, AVAILABILITY_COLOR } from '../../../types/api';
 
 function MiniBar({ score, max, color }: { score: number; max: number; color: string }) {
   const pct = Math.min((score / max) * 100, 100);
@@ -54,6 +55,13 @@ export function MatchCard({ result }: Props) {
           <span className="text-xs text-zinc-600">/ 100</span>
         </div>
       </div>
+
+      {/* Availability status badge */}
+      {influencer.availabilityStatus && (
+        <span className={`inline-flex items-center self-start rounded-full px-2 py-0.5 text-xs font-medium ${AVAILABILITY_COLOR[influencer.availabilityStatus]}`}>
+          {AVAILABILITY_LABELS[influencer.availabilityStatus]}
+        </span>
+      )}
 
       {/* Matched categories */}
       {breakdown.matchedCategories.length > 0 && (

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { InfluencerProfile } from '../../../types/api';
+import { InfluencerProfile, AVAILABILITY_LABELS, AVAILABILITY_COLOR } from '../../../types/api';
 import { ScoreBadge } from '../ScoreBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar';
 import { buttonVariants } from '../../ui/button';
@@ -45,6 +45,15 @@ export function InfluencerCard({ influencer }: InfluencerCardProps) {
           )}
         </div>
       </div>
+
+      {/* Availability status badge */}
+      {influencer.availabilityStatus && (
+        <div className="mb-2">
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${AVAILABILITY_COLOR[influencer.availabilityStatus]}`}>
+            {AVAILABILITY_LABELS[influencer.availabilityStatus]}
+          </span>
+        </div>
+      )}
 
       {influencer.categories.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-3">
