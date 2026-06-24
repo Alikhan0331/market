@@ -12,6 +12,7 @@ import { MatchingModule } from './matching/matching.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { ReliabilityModule } from './reliability/reliability.module';
 import { PricingModule } from './pricing/pricing.module';
+import { InstagramModule } from './instagram/instagram.module';
 import { PartnershipModule } from './partnership/partnership.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
@@ -41,6 +42,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     YoutubeModule,
     ScoringModule,
     MatchingModule,
+    InstagramModule,
     CampaignsModule,
     ReliabilityModule,
     PricingModule,
