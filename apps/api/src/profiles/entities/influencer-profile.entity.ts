@@ -81,6 +81,15 @@ export class InfluencerProfile {
 
   @Column({ default: 0 })
   instagramAvgReach: number;
+  // Instagram OAuth
+  @Column({ nullable: true, select: false }) // select:false — не возвращается в API
+  instagramAccessToken: string;
+
+  @Column({ nullable: true })
+  instagramUserId: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  instagramLastSyncAt: Date;
 
   // TikTok
   @Column({ nullable: true })
@@ -143,7 +152,13 @@ export class InfluencerProfile {
   })
   verificationStatus: VerificationStatus;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, default: null })
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    default: null,
+  })
   reliabilityScore: number | null;
 
   @CreateDateColumn()

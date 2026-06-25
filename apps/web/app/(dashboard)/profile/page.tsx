@@ -17,6 +17,7 @@ import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import { InfluencerProfile, BrandProfile, AvailabilityStatus, AVAILABILITY_LABELS, AVAILABILITY_COLOR } from '../../../types/api';
 import { YoutubeConnector } from '../../../components/shared/YoutubeConnector';
+import { InstagramConnector } from '../../../components/shared/InstagramConnector';
 import { ScoreBreakdown } from '../../../components/shared/ScoreBreakdown';
 import { ShieldCheck } from 'lucide-react';
 
@@ -347,6 +348,11 @@ export default function ProfilePage() {
             currentHandle={influencerProfile?.youtubeHandle}
             lastSyncAt={influencerProfile?.youtubeLastSyncAt as any}
             onSaved={invalidate}
+          />
+          <InstagramConnector
+              token={token}
+              lastSyncAt={influencerProfile?.instagramLastSyncAt as any}
+              onSaved={invalidate}
           />
           {myPartnerships && myPartnerships.filter((p) => p.tier !== 'NONE').length > 0 && (
             <div className="space-y-3">
