@@ -9,3 +9,5 @@ JWT_REFRESH_SECRET=dev-refresh-secret
 NODE_ENV=development
 NEXTAUTH_SECRET=2005abcf1b4d5b38026ee3fde678c0e0dafff66ec66b784a6c9163bacc1f6d34
 NEXTAUTH_URL=http://localhost:3000/
+FRONTEND_URL=http://localhost:3000
+PORT=3001

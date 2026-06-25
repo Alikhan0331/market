@@ -34,7 +34,7 @@ const schema = z.object({
   title:       z.string().min(3, 'Min 3 characters'),
   description: z.string().optional(),
   goal:        z.enum(['REACH', 'SALES', 'AWARENESS']),
-  budget:      z.preprocess((v) => Number(v), z.number().min(1, 'Required')),
+  budget:      z.string().min(1, 'Required').transform((v) => Number(v)),
   geo:         z.string().optional(),
   deadline:    z.string().min(1, 'Required'),
   format:      z.enum(['STORY', 'REEL', 'POST', 'VIDEO', 'INTEGRATION']),
