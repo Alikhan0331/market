@@ -91,18 +91,11 @@ export class TiktokService {
   }
 
   async getTiktokData(userId: string) {
-    const profile = await this.influencerRepo.findOne({
-      where: { userId },
-      select: [
-        'tiktokHandle',
-        'tiktokFollowers',
-        'tiktokAvgViews',
-        'tiktokER',
-        'tiktokUserId',
-        'tiktokLastSyncAt',
-        'tiktokAccessToken',
-      ],
-    });
+    const profile = await this.influencerRepo
+      .createQueryBuilder('ip')
+      .addSelect('ip.tiktokAccessToken')
+      .where('ip.userId = :userId', { userId })
+      .getOne();
     if (!profile?.tiktokAccessToken) return { connected: false };
 
     try {
